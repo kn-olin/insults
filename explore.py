@@ -86,7 +86,7 @@ test_text,test_text_feats,test_labels = load(os.path.join(data_dir,'impermium_ve
 
 # Example of using a TfidfVectorizer to convert text to ML friendly format
 # Uses bigrams and a minimum document frequency to improve quality of text vector
-vect = TfidfVectorizer(min_df=0.001,ngram_range=(1, 2))
+vect = TfidfVectorizer(min_df=0.001,ngram_range=(1, 2), norm="l1")
 vect.fit(np.hstack((train_text,test_text)))
 train_text = vect.transform(train_text)
 test_text = vect.transform(test_text)
