@@ -40,7 +40,7 @@ def makeFeatures(text):
 def save(filename, data):
 	pass
 
-def main_logistic_regression(train_text, train_label, test_text, verbose=False):
+def main_logistic_regression(train_text, train_label, test_text, verbose=True):
 	''' logistic regression '''
 	clf = lm.LogisticRegression(penalty='l2')
 
@@ -60,7 +60,7 @@ def main_logistic_regression(train_text, train_label, test_text, verbose=False):
 
 	return clf, mean_score
 
-def main_naive_bayes(train_text, train_label, test_text, verbose=False):
+def main_naive_bayes(train_text, train_label, test_text, verbose=True):
 	''' naive_bayes '''
 	clf = nb.MultinomialNB(alpha=0.4, fit_prior=True)
 
@@ -96,6 +96,6 @@ if __name__=="__main__":
 	train_text = vect.transform(train_text)
 	test_text = vect.transform(test_text)
 	
-	clf, mean_score = main_naive_bayes(train_text, train_label, test_text, verbose=True)
+	clf, mean_score = main_naive_bayes(train_text, train_label, test_text)
 
 	savePrediction("scrap.csv", test_id, test_text, clf)
