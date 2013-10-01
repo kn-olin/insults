@@ -40,25 +40,50 @@ def makeFeatures(text):
 def save(filename, data):
 	pass
 
-def main_logistic_regression():
-	pass
+def main_logistic_regression(train_text, train_label, test_text, verbose=False):
+	''' logistic regression '''
+	clf = lm.LogisticRegression(penalty='l2')
 
-def main_naive_bayes():
+	scores = cv.cross_val_score(clf, train_text, train_label, cv=5, scoring='roc_auc')
+	mean_score = np.mean(scores)
+
+	clf.fit(train_text, train_label)
+
+	if verbose:
+		print("auc: %0.5f" % mean_score)
+		results = pd.DataFrame({'features': vect.get_feature_names(), 'weights': clf.coef_[0]})
+		results = results.sort('weights', ascending=False)
+		print('\n###### insult')
+		print(results[:10])
+		print('\n###### not insult')
+		print(results[-10:])
+
+	return clf, mean_score
+
+def main_naive_bayes(train_text, train_label, test_text, verbose=False):
 	''' naive_bayes '''
-	clf = nb.MultinomialNB(fit_prior=True)
+	clf = nb.MultinomialNB(alpha=0.4, fit_prior=True)
 
-	scores = cv.cross_val_score(clf, train_text, train_labels, cv=5, scoring='roc_auc')
-	print("auc: %0.5f" % np.mean(scores))
+	scores = cv.cross_val_score(clf, train_text, train_label, cv=5, scoring='roc_auc')
+	mean_score = np.mean(scores)
 
-	clf.fit(train_text, train_labels)
-	results = pd.DataFrame({'features': vect.get_feature_names(), 
-		                  'weights': clf.coef_[0]})
-	results = results.sort('weights', ascending=False)
-	print('\n###### insult')
-	print(results[:25])
+	clf.fit(train_text, train_label)
 
-	pred = clf.predict_proba(test_text)[:,1]
-	return pred
+	if verbose:
+		print("auc: %0.5f" % mean_score)
+		results = pd.DataFrame({'features': vect.get_feature_names(), 'weights': clf.coef_[0]})
+		results = results.sort('weights', ascending=False)
+		print('\n###### insult')
+		print(results[:25])
+
+	return clf, mean_score
+
+
+def savePrediction(filename, test_id, test_text, clf):
+	''' output '''
+	prob = clf.predict_proba(test_text)[:,1]
+	predict = pd.DataFrame({"Id": test_id, "Insult": prob})
+	predict.to_csv(filename, index=False)
 
 
 if __name__=="__main__":
@@ -70,23 +95,7 @@ if __name__=="__main__":
 	vect.fit(np.hstack((train_text, test_text)))
 	train_text = vect.transform(train_text)
 	test_text = vect.transform(test_text)
+	
+	clf, mean_score = main_naive_bayes(train_text, train_label, test_text, verbose=True)
 
-	''' logistic regression '''
-	clf = lm.LogisticRegression(penalty='l2')
-
-	scores = cv.cross_val_score(clf, train_text, train_label, cv=5, scoring='roc_auc')
-	print("auc: %0.5f" % np.mean(scores))
-
-	clf.fit(train_text, train_label)
-	results = pd.DataFrame({'features': vect.get_feature_names(), 
-		                  'weights': clf.coef_[0]})
-	results = results.sort('weights', ascending=False)
-	print('\n###### insult')
-	print(results[:10])
-	print('\n###### not insult')
-	print(results[-10:])
-
-	''' output '''
-	prob = clf.predict_proba(test_text)[:,1]
-	predict = pd.DataFrame({"Id": test_id, "Insult": prob})
-	predict.to_csv("predict_logistic_l2.csv", index=False)
+	savePrediction("scrap.csv", test_id, test_text, clf)
