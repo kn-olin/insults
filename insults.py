@@ -32,11 +32,7 @@ def makeFeatures(text):
 	pass
 
 
-def save(filename):
-	pass
-
-
-def main():
+def save(filename, data):
 	pass
 
 
@@ -49,5 +45,19 @@ if __name__=="__main__":
 	train_text = vect.transform(train_text)
 	test_text = vect.transform(test_text)
 
-	model = lm.LogisticRegression(penalty='l2')
-	scores = cv.cross_val_score(model, train_text, train_labels, cv=5)
+	clf = lm.LogisticRegression(penalty='l1')
+
+	scores = cv.cross_val_score(clf, train_text, train_labels, cv=5)
+	print("\naccuracy: %0.5f" % np.mean(scores))
+
+	clf.fit(train_text, train_labels)
+	results = pd.DataFrame({'features': vect.get_feature_names(), 
+		                  'weights': clf.coef_[0]})
+	results = results.sort('weights', ascending=False)
+	print('\n###### insult')
+	print(results[:10])
+	print('\n###### not insult')
+	print(results[-10:])
+
+	# pred = clf.predict(train_text)
+	pred = clf.predict(test_text)
