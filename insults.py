@@ -21,12 +21,14 @@ def loadTrain(filename):
 	insult = data["Insult"].values
 	return text, insult
 
+
 def loadTest(filename):
 	"""Load comment and id."""
 	data = pd.read_csv(filename)
 	text = data["Comment"].values
 	comment_id = data["id"].values
 	return text, comment_id
+
 
 def tokenizeText():
 	"""Tokenize a full text block."""
@@ -39,6 +41,7 @@ def makeFeatures(text):
 
 def save(filename, data):
 	pass
+
 
 def main_logistic_regression(train_text, train_label, test_text, verbose=True):
 	''' logistic regression '''
@@ -53,16 +56,17 @@ def main_logistic_regression(train_text, train_label, test_text, verbose=True):
 		print("auc: %0.5f" % mean_score)
 		results = pd.DataFrame({'features': vect.get_feature_names(), 'weights': clf.coef_[0]})
 		results = results.sort('weights', ascending=False)
-		print('\n###### insult')
+		print('\n##### insult')
 		print(results[:10])
-		print('\n###### not insult')
+		print('\n##### not insult')
 		print(results[-10:])
 
 	return clf, mean_score
 
+
 def main_naive_bayes(train_text, train_label, test_text, verbose=True):
 	''' naive_bayes '''
-	clf = nb.MultinomialNB(alpha=0.4, fit_prior=True)
+	clf = nb.MultinomialNB(alpha=0.3, fit_prior=True)
 
 	scores = cv.cross_val_score(clf, train_text, train_label, cv=5, scoring='roc_auc')
 	mean_score = np.mean(scores)
@@ -73,7 +77,7 @@ def main_naive_bayes(train_text, train_label, test_text, verbose=True):
 		print("auc: %0.5f" % mean_score)
 		results = pd.DataFrame({'features': vect.get_feature_names(), 'weights': clf.coef_[0]})
 		results = results.sort('weights', ascending=False)
-		print('\n###### insult')
+		print('\n##### insult')
 		print(results[:25])
 
 	return clf, mean_score
@@ -91,11 +95,11 @@ if __name__=="__main__":
 	test_text, test_id = loadTest("test.csv")
 
 	# vect = CountVectorizer(ngram_range=(1,1))
-	vect = TfidfVectorizer(min_df=0.001, ngram_range=(1, 1))
+	vect = TfidfVectorizer(min_df=0.001, ngram_range=(1, 2))
 	vect.fit(np.hstack((train_text, test_text)))
 	train_text = vect.transform(train_text)
 	test_text = vect.transform(test_text)
 	
 	clf, mean_score = main_naive_bayes(train_text, train_label, test_text)
 
-	savePrediction("scrap.csv", test_id, test_text, clf)
+	savePrediction("prediction_naive_bayes.csv", test_id, test_text, clf)
